@@ -417,11 +417,18 @@ export default function Home() {
 
         {/* Right Column: Results */}
         <div className="lg:col-span-8">
-          {slides.length === 0 && !isGeneratingBrain ? (
-            <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
-              <LayoutTemplate className="w-12 h-12 mb-4 text-slate-300" />
-              <p className="text-sm font-medium">Your carousel structure will appear here</p>
-            </div>
+          {slides.length === 0 ? (
+            isGeneratingBrain ? (
+              <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                <Loader2 className="w-12 h-12 mb-4 text-blue-500 animate-spin" />
+                <p className="text-sm font-medium">O Agente está construindo a estrutura do Carrossel...</p>
+              </div>
+            ) : (
+              <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+                <LayoutTemplate className="w-12 h-12 mb-4 text-slate-300" />
+                <p className="text-sm font-medium">Your carousel structure will appear here</p>
+              </div>
+            )
           ) : (
             <div className="space-y-8 flex flex-col items-center">
               <div className="w-full">
