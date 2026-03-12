@@ -48,11 +48,11 @@ export async function POST(request: Request) {
     console.log("Output da Replicate:", output);
     let imageUrl = "";
     if (Array.isArray(output) && output.length > 0) {
-      imageUrl = typeof output[0].url === "function" ? output[0].url() : output[0];
+      imageUrl = typeof (output[0] as any).url === "function" ? (output[0] as any).url() : String(output[0]);
     } else if (output && typeof (output as any).url === "function") {
       imageUrl = (output as any).url();
     } else {
-      imageUrl = output as string;
+      imageUrl = output as unknown as string;
     }
     
     return NextResponse.json({ imageUrl });
