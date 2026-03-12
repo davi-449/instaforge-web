@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Sparkles, Image as ImageIcon, Download, Settings, LayoutTemplate } from 'lucide-react';
+import { Loader2, Sparkles, Image as ImageIcon, Download, Settings, LayoutTemplate, ChevronLeft, ChevronRight } from 'lucide-react';
 import { SettingsModal } from '@/components/SettingsModal';
 
 interface Slide {
@@ -27,7 +27,10 @@ export default function Home() {
   const [localPersonaUrl, setLocalPersonaUrl] = useState('');
   const [format, setFormat] = useState('4:5');
   const [slideCount, setSlideCount] = useState<number>(5);
+  const [aiModel, setAiModel] = useState('instant-id');
+  const [resolution, setResolution] = useState('standard');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
   useEffect(() => {
     async function fetchSettings() {
@@ -72,6 +75,7 @@ export default function Home() {
       
       setTitle(data.title);
       setSlides(data.slides);
+      setCurrentSlideIndex(0);
     } catch (error) {
       console.error(error);
       alert('Erro ao gerar ideias. Tente novamente.');
@@ -259,6 +263,67 @@ export default function Home() {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Motor de Geração de Imagem</label>
+                <div className="space-y-2">
+                  {[
+                    { id: 'instant-id', name: 'InstantID (Rosto Preciso)', desc: 'Mantém seu rosto fiel (Replicate/Banana)', cost: 0.006 },
+                    { id: 'flux', name: 'Flux (Ultra Realismo)', desc: 'Imagens super realistas, rosto genérico', cost: 0.003 },
+                  ].map(model => (
+                    <button
+                      key={model.id}
+                      onClick={() => setAiModel(model.id)}
+                      className={`w-full text-left p-3 rounded-xl border transition-all flex justify-between items-center ${
+                        aiModel === model.id 
+                          ? 'bg-blue-50/50 border-blue-500 shadow-[0_0_0_1px_rgba(59,130,246,1)]' 
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div>
+                        <div className={`text-sm font-semibold ${aiModel === model.id ? 'text-blue-700' : 'text-slate-800'}`}>{model.name}</div>
+                        <div className="text-xs text-slate-500 mt-0.5">{model.desc}</div>
+                      </div>
+                      <div className="text-xs font-bold text-slate-400">~${model.cost}/img</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Qualidade & Resolução</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setResolution('standard')}
+                    className={`py-2 text-sm font-medium rounded-xl border transition-all ${
+                        resolution === 'standard'
+                          ? 'bg-black text-white border-black shadow-sm' 
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                  >Standard (Base)</button>
+                  <button
+                    onClick={() => setResolution('hd')}
+                    className={`py-2 text-sm font-medium rounded-xl border transition-all ${
+                        resolution === 'hd'
+                          ? 'bg-black text-white border-black shadow-sm' 
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                  >HD (Alto Custo)</button>
+                </div>
+              </div>
+
+              {/* Cost Estimator */}
+              <div className="bg-[#f8f9fa] border border-slate-200 rounded-xl p-4 flex items-center justify-between">
+                <div>
+                  <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Estimativa de Custo</div>
+                  <div className="text-sm text-slate-600">
+                    {slideCount} slides × {aiModel === 'instant-id' ? '$0.006' : '$0.003'} {resolution === 'hd' ? '× 1.5 (HD)' : ''}
+                  </div>
+                </div>
+                <div className="text-xl font-bold text-slate-900">
+                  ${(slideCount * (aiModel === 'instant-id' ? 0.006 : 0.003) * (resolution === 'hd' ? 1.5 : 1)).toFixed(3)}
+                </div>
+              </div>
+
               <div className="flex gap-2">
                 <button
                   onClick={handleGenerateBrain}
@@ -317,97 +382,175 @@ export default function Home() {
               <p className="text-sm font-medium">Your carousel structure will appear here</p>
             </div>
           ) : (
-            <div className="space-y-6">
-              {title && (
-                <h2 className="text-2xl font-bold tracking-tight text-slate-900">{title}</h2>
-              )}
+            <div className="space-y-8 flex flex-col items-center">
+              <div className="w-full">
+                {title && (
+                  <h2 className="text-2xl font-bold tracking-tight text-slate-900 text-center mb-6">{title}</h2>
+                )}
+                
+                {/* Carousel Indicators */}
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  {slides.map((_, idx) => (
+                    <button 
+                      key={idx}
+                      onClick={() => setCurrentSlideIndex(idx)}
+                      className={`h-2 rounded-full transition-all ${currentSlideIndex === idx ? 'w-8 bg-blue-600' : 'w-2 bg-slate-200 hover:bg-slate-300'}`}
+                    />
+                  ))}
+                </div>
+              </div>
               
-              <div className="grid gap-6">
-                {slides.map((slide, index) => (
-                  <div key={index} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col sm:flex-row">
-                    
-                    {/* Image Preview Area */}
-                    <div className="w-full sm:w-[300px] bg-[#f3f4f6] relative flex-shrink-0 border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center justify-center p-4">
-                      
-                      {/* Dynamic Format Preview Mockup */}
-                      <div className={`relative bg-slate-200 rounded-lg overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center transition-all duration-500 max-h-[350px] ${
-                        format === '1:1' ? 'w-full aspect-square' :
-                        format === '4:5' ? 'w-[80%] aspect-[4/5]' :
-                        'w-[56%] aspect-[9/16]'
-                      }`}>
-                        
-                        {slide.generated_image_url ? (
-                          <img 
-                            src={slide.generated_image_url} 
-                            alt={`Slide ${slide.slide_order}`}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : slide.isGenerating ? (
-                          <div className="flex flex-col items-center text-slate-500">
-                            <Loader2 className="w-8 h-8 animate-spin mb-2 text-blue-500" />
-                            <span className="text-[11px] font-medium">Baking pixels...</span>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center text-slate-300">
-                            <ImageIcon className="w-10 h-10 mb-2 opacity-50" />
-                            <span className="text-[10px] font-medium tracking-wider uppercase">Preview</span>
-                          </div>
-                        )}
-                        
-                        {/* Overlay Text Preview */}
-                        {slide.generated_image_url && (
-                          <div className="absolute inset-x-0 bottom-0 flex items-end p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-12">
-                            <p className="text-white font-bold text-[15px] leading-tight drop-shadow-lg text-center w-full">
-                              {slide.content_text}
-                            </p>
-                          </div>
-                        )}
-                      </div>
+              <div className="w-full max-w-sm flex flex-col items-center">
+                {/* Instagram Post Simulation */}
+                <div className="bg-white border text-sm font-sans border-slate-200 rounded-lg overflow-hidden shadow-md w-full flex flex-col relative">
+                  
+                  {/* Insta Header */}
+                  <div className="px-4 py-3 flex items-center justify-between border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={localPersonaUrl || brandSettings?.persona_image_url || 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix'} 
+                        alt="Avatar" 
+                        className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                      />
+                      <span className="font-semibold text-slate-900 text-[13px]">Seu Perfil</span>
                     </div>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-800"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                  </div>
 
-                    {/* Content Area */}
-                    <div className="p-6 flex-1 flex flex-col">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="px-2.5 py-1 bg-slate-100 text-slate-600 text-xs font-semibold rounded-md">
-                          Slide {slide.slide_order}
-                        </span>
+                  {/* Insta Image Viewer */}
+                  <div className="relative w-full bg-slate-100 flex items-center justify-center overflow-hidden" style={{ aspectRatio: format === '1:1' ? '1/1' : format === '4:5' ? '4/5' : '9/16' }}>
+                    
+                    {slides[currentSlideIndex].generated_image_url ? (
+                      <img 
+                        src={slides[currentSlideIndex].generated_image_url} 
+                        alt="Slide"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : slides[currentSlideIndex].isGenerating ? (
+                      <div className="flex flex-col items-center text-slate-500">
+                        <Loader2 className="w-8 h-8 animate-spin mb-2 text-blue-500" />
+                        <span className="text-[11px] font-medium">Renderizando na nuvem...</span>
                       </div>
-                      
-                      <div className="mb-4">
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Overlay Text</label>
-                        <p className="text-sm font-medium text-slate-900">{slide.content_text}</p>
+                    ) : (
+                      <div className="flex flex-col items-center text-slate-300">
+                        <ImageIcon className="w-12 h-12 mb-2 opacity-30" />
+                        <span className="text-xs font-medium uppercase tracking-widest text-slate-400">Arraste para o lado</span>
                       </div>
+                    )}
 
-                      <div className="mb-6 flex-1">
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Image Prompt</label>
-                        <p className="text-sm text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
-                          {slide.image_prompt}
+                    {/* Gradient & Overlay Text */}
+                    {slides[currentSlideIndex].generated_image_url && (
+                      <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-16">
+                        <p className="text-white font-bold text-lg leading-snug drop-shadow-md text-center">
+                          {slides[currentSlideIndex].content_text}
                         </p>
                       </div>
+                    )}
 
-                      <div className="flex gap-3 mt-auto">
-                        <button
-                          onClick={() => handleGenerateImage(index)}
-                          disabled={slide.isGenerating}
-                          className="flex-1 py-2 px-4 bg-black text-white rounded-lg font-medium text-sm hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                          {slide.isGenerating ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <ImageIcon className="w-4 h-4" />
-                          )}
-                          {slide.generated_image_url ? 'Regenerate Image' : 'Generate Image'}
-                        </button>
-                        
-                        {slide.generated_image_url && (
-                          <button className="p-2 border border-slate-200 text-slate-600 rounded-lg hover:bg-slate-50 transition-colors">
-                            <Download className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+                    {/* Left/Right Arrows inside Post */}
+                    {currentSlideIndex > 0 && (
+                      <button 
+                        onClick={() => setCurrentSlideIndex(prev => prev - 1)}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/70 hover:bg-white rounded-full flex items-center justify-center shadow-lg backdrop-blur-md transition-all z-10 text-slate-800"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                    )}
+                    {currentSlideIndex < slides.length - 1 && (
+                      <button 
+                        onClick={() => setCurrentSlideIndex(prev => prev + 1)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/70 hover:bg-white rounded-full flex items-center justify-center shadow-lg backdrop-blur-md transition-all z-10 text-slate-800"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    )}
+
+                    {/* Slide Counter Top Right */}
+                    <div className="absolute top-3 right-3 bg-black/60 rounded-full px-2.5 py-1 backdrop-blur-sm z-10">
+                      <span className="text-white text-[10px] font-semibold tracking-wider">
+                        {currentSlideIndex + 1}/{slides.length}
+                      </span>
                     </div>
                   </div>
-                ))}
+
+                  {/* Insta Footer */}
+                  <div className="px-4 py-3 bg-white">
+                    <div className="flex justify-between items-center mb-3">
+                      <div className="flex gap-4 text-slate-900">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                      </div>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-900"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm font-semibold text-slate-900">1.245 curtidas</p>
+                      <p className="text-[13px] text-slate-900 leading-snug">
+                        <span className="font-semibold mr-1.5">Seu Perfil</span>
+                        <span dangerouslySetInnerHTML={{__html: slides[currentSlideIndex].content_text.replace(/\n/g, '<br/>')}} />
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Editor Controls for Current Slide */}
+                <div className="mt-8 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm w-full">
+                  <div className="flex items-center justify-between mb-5">
+                    <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+                      <Settings className="w-4 h-4 text-blue-500" />
+                      Editor do Slide {currentSlideIndex + 1}
+                    </h3>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Texto da Imagem / Legenda</label>
+                      <input 
+                        className="w-full text-sm font-medium text-slate-900 p-3 bg-[#f8f9fa] border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all shadow-inner"
+                        value={slides[currentSlideIndex].content_text}
+                        onChange={(e) => {
+                          const newSlides = [...slides];
+                          newSlides[currentSlideIndex].content_text = e.target.value;
+                          setSlides(newSlides);
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Engenharia do Prompt (IA)</label>
+                      <textarea 
+                        className="w-full text-sm text-slate-600 p-3 bg-[#f8f9fa] border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all resize-none min-h-[110px] shadow-inner font-mono leading-relaxed"
+                        value={slides[currentSlideIndex].image_prompt}
+                        onChange={(e) => {
+                          const newSlides = [...slides];
+                          newSlides[currentSlideIndex].image_prompt = e.target.value;
+                          setSlides(newSlides);
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-3">
+                      <button
+                        onClick={() => handleGenerateImage(currentSlideIndex)}
+                        disabled={slides[currentSlideIndex].isGenerating}
+                        className="flex-1 py-3.5 px-4 bg-black text-white rounded-xl font-medium text-sm hover:translate-y-[-2px] hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none flex items-center justify-center gap-2"
+                      >
+                        {slides[currentSlideIndex].isGenerating ? (
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-400" />
+                        ) : (
+                          <ImageIcon className="w-4 h-4 text-blue-400" />
+                        )}
+                        {slides[currentSlideIndex].generated_image_url ? 'Regerar Imagem na Nuvem' : 'Renderizar Imagem (Replicate)'}
+                      </button>
+                      
+                      {slides[currentSlideIndex].generated_image_url && (
+                        <button className="p-3 border-2 border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-colors flex items-center justify-center">
+                          <Download className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
