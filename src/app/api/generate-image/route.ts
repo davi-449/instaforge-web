@@ -3,17 +3,22 @@
 import { NextResponse } from 'next/server';
 import Replicate from 'replicate';
 
-const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN || 'placeholder',
-});
-
 export async function POST(request: Request) {
   try {
-    const { prompt, personaUrl, format } = await request.json();
+    const { prompt, personaUrl, format, apiToken } = await request.json();
 
     if (!prompt || !personaUrl) {
       return NextResponse.json({ error: 'Prompt e Persona URL são obrigatórios' }, { status: 400 });
     }
+
+    const finalToken = apiToken || process.env.REPLICATE_API_TOKEN;
+    if (!finalToken) {
+      return NextResponse.json({ error: 'Configure seu Replicate API Token nas Configurações primeiro.' }, { status: 400 });
+    }
+
+    const replicate = new Replicate({
+      auth: finalToken,
+    });
 
     // Definir dimensões baseadas no formato
     let width = 1080;

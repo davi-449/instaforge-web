@@ -2,8 +2,6 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'placeholder');
-
 const systemInstruction = `Você é um Diretor de Arte Sênior, Copywriter Especialista em Instagram e Mestre em Engenharia de Prompts para Stable Diffusion (Replicate/Midjourney).
 Sua missão é transformar uma ideia simples em um Carrossel de Instagram altamente engajador e visualmente deslumbrante.
 
@@ -30,11 +28,18 @@ Retorne APENAS um JSON válido no seguinte formato:
 
 export async function POST(request: Request) {
   try {
-    const { idea } = await request.json();
+    const { idea, apiKey } = await request.json();
 
     if (!idea) {
       return NextResponse.json({ error: 'A ideia é obrigatória' }, { status: 400 });
     }
+
+    const finalKey = apiKey || process.env.GEMINI_API_KEY;
+    if (!finalKey) {
+      return NextResponse.json({ error: 'Configure sua Gemini API Key nas Configurações primeiro.' }, { status: 400 });
+    }
+    
+    const genAI = new GoogleGenerativeAI(finalKey);
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',

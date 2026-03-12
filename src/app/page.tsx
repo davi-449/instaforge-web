@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Loader2, Sparkles, Image as ImageIcon, Download, Settings, LayoutTemplate } from 'lucide-react';
+import { SettingsModal } from '@/components/SettingsModal';
 
 interface Slide {
   slide_order: number;
@@ -24,6 +25,7 @@ export default function Home() {
   const [title, setTitle] = useState('');
   const [brandSettings, setBrandSettings] = useState<BrandSettings | null>(null);
   const [format, setFormat] = useState('4:5');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
     async function fetchSettings() {
@@ -42,12 +44,20 @@ export default function Home() {
 
   const handleGenerateBrain = async () => {
     if (!idea) return;
+    
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+      alert('Por favor, configure sua chave do Gemini nas Settings primeiro.');
+      setIsSettingsOpen(true);
+      return;
+    }
+
     setIsGeneratingBrain(true);
     try {
       const res = await fetch('/api/generate-brain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea }),
+        body: JSON.stringify({ idea, apiKey }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -68,6 +78,13 @@ export default function Home() {
       return;
     }
 
+    const apiToken = localStorage.getItem('replicate_api_key');
+    if (!apiToken) {
+      alert('Por favor, configure seu token da Replicate nas Settings primeiro.');
+      setIsSettingsOpen(true);
+      return;
+    }
+
     const newSlides = [...slides];
     newSlides[index].isGenerating = true;
     setSlides(newSlides);
@@ -79,7 +96,8 @@ export default function Home() {
         body: JSON.stringify({
           prompt: slides[index].image_prompt,
           personaUrl: brandSettings.persona_image_url,
-          format: format
+          format: format,
+          apiToken: apiToken
         }),
       });
       
@@ -154,12 +172,14 @@ export default function Home() {
           <h1 className="text-xl font-semibold tracking-tight">InstaForge</h1>
         </div>
         <div className="flex items-center gap-4 text-sm font-medium text-slate-600">
-          <button className="hover:text-black transition-colors flex items-center gap-2">
+          <button onClick={() => setIsSettingsOpen(true)} className="hover:text-black transition-colors flex items-center gap-2">
             <Settings className="w-4 h-4" />
             Settings
           </button>
         </div>
       </header>
+
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
 
       <main className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
         
