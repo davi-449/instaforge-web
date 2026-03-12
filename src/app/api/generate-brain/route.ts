@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || 'placeholder');
 
 const systemInstruction = `Você é um Diretor de Arte Sênior, Copywriter Especialista em Instagram e Mestre em Engenharia de Prompts para Stable Diffusion (Replicate/Midjourney).
 Sua missão é transformar uma ideia simples em um Carrossel de Instagram altamente engajador e visualmente deslumbrante.
