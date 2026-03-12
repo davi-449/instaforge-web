@@ -13,6 +13,7 @@ Para cada slide do carrossel, você deve fornecer:
    - O prompt DEVE descrever a composição e estilo (ex: rule of thirds, hyper-realistic, masterpiece).
    - O prompt DEVE descrever a ação/pose da pessoa (ex: pointing at the camera, holding a glowing chart, looking surprised).
    - O prompt DEVE começar com "A professional woman in business attire" (pois usaremos IP-Adapter para manter o rosto).
+   - [REGRA CRÍTICA]: NUNCA, SOB NENHUMA HIPÓTESE inclua palavras, fontes, textos, logos, tipografia ou letras no \`image_prompt\`. O gerador de imagens deve fazer APENAS o cenário e a fotografia limpa, pois TODO o texto será gerado e sobreposto em HTML nativo depois.
 
 Retorne APENAS um JSON válido no seguinte formato:
 {

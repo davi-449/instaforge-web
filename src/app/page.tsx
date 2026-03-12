@@ -11,6 +11,12 @@ interface Slide {
   image_prompt: string;
   generated_image_url?: string;
   isGenerating?: boolean;
+  // Canva Design Features
+  textPosition?: 'top' | 'center' | 'bottom' | 'none';
+  textAlign?: 'left' | 'center' | 'right';
+  themeColor?: 'light' | 'dark' | 'brand';
+  fontFamily?: 'sans' | 'serif';
+  showLogo?: boolean;
 }
 
 interface BrandSettings {
@@ -481,12 +487,44 @@ export default function Home() {
                     )}
 
                     {/* Gradient & Overlay Text */}
-                    {slides[currentSlideIndex].generated_image_url && (
-                      <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-16">
-                        <p className="text-white font-bold text-lg leading-snug drop-shadow-md text-center">
-                          {slides[currentSlideIndex].content_text}
-                        </p>
+                    {slides[currentSlideIndex].generated_image_url && slides[currentSlideIndex].textPosition !== 'none' && (
+                      <div className={`absolute inset-x-0 ${
+                        slides[currentSlideIndex].textPosition === 'top' 
+                          ? 'top-0 bg-gradient-to-b from-black/80 via-black/40 to-transparent pb-16 pt-8' 
+                          : slides[currentSlideIndex].textPosition === 'center'
+                            ? 'top-1/2 -translate-y-1/2 bg-black/40 py-8'
+                            : 'bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-16 pb-8'
+                      } px-6 flex flex-col`}>
+                        
+                        <div className={`flex flex-col gap-2 w-full ${
+                          slides[currentSlideIndex].textAlign === 'center' ? 'text-center items-center' : 
+                          slides[currentSlideIndex].textAlign === 'right' ? 'text-right items-end' : 'text-left items-start'
+                        } ${
+                          slides[currentSlideIndex].fontFamily === 'serif' ? 'font-serif' : 'font-sans'
+                        } ${
+                          slides[currentSlideIndex].themeColor === 'dark' ? 'text-slate-900 drop-shadow-none' : 
+                          slides[currentSlideIndex].themeColor === 'brand' ? 'text-yellow-400 drop-shadow-md' : 'text-white drop-shadow-md'
+                        }`}>
+                          {/* Split text by newline into Title and Description */}
+                          {(() => {
+                            const lines = slides[currentSlideIndex].content_text.split('\n').filter(l => l.trim().length > 0);
+                            if (lines.length === 0) return null;
+                            const title = lines[0];
+                            const rest = lines.slice(1).join('\n');
+                            return (
+                              <>
+                                <h1 className="font-black text-2xl md:text-3xl leading-tight tracking-tight">{title}</h1>
+                                {rest && <p className={`text-sm md:text-base opacity-90 leading-snug mt-1 ${slides[currentSlideIndex].fontFamily === 'serif' ? 'font-sans' : ''} whitespace-pre-wrap`}>{rest}</p>}
+                                </>
+                            );
+                          })()}
+                        </div>
                       </div>
+                    )}
+
+                    {/* Logo Overlay */}
+                    {slides[currentSlideIndex].generated_image_url && slides[currentSlideIndex].showLogo !== false && brandSettings?.logo_url && (
+                        <img src={brandSettings.logo_url} alt="Brand Logo" className="absolute top-4 left-4 h-8 md:h-10 w-auto object-contain drop-shadow-md" />
                     )}
 
                     {/* Left/Right Arrows inside Post */}
@@ -571,6 +609,99 @@ export default function Home() {
                       />
                     </div>
 
+                    {/* Design Canvas Controls */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+                      {/* Posição */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Posição</label>
+                        <select 
+                          className="w-full text-xs p-2 border rounded-lg bg-white"
+                          value={slides[currentSlideIndex].textPosition || 'bottom'}
+                          onChange={(e) => {
+                            const newSlides = [...slides];
+                            newSlides[currentSlideIndex].textPosition = e.target.value as any;
+                            setSlides(newSlides);
+                          }}
+                        >
+                          <option value="bottom">Base</option>
+                          <option value="center">Centro</option>
+                          <option value="top">Topo</option>
+                          <option value="none">Ocultar</option>
+                        </select>
+                      </div>
+
+                      {/* Alinhamento */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Alinhamento</label>
+                        <select 
+                          className="w-full text-xs p-2 border rounded-lg bg-white"
+                          value={slides[currentSlideIndex].textAlign || 'left'}
+                          onChange={(e) => {
+                            const newSlides = [...slides];
+                            newSlides[currentSlideIndex].textAlign = e.target.value as any;
+                            setSlides(newSlides);
+                          }}
+                        >
+                          <option value="left">Esquerda</option>
+                          <option value="center">Centro</option>
+                          <option value="right">Direita</option>
+                        </select>
+                      </div>
+
+                      {/* Fonte */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Estilo (Fonte)</label>
+                        <select 
+                          className="w-full text-xs p-2 border rounded-lg bg-white"
+                          value={slides[currentSlideIndex].fontFamily || 'sans'}
+                          onChange={(e) => {
+                            const newSlides = [...slides];
+                            newSlides[currentSlideIndex].fontFamily = e.target.value as any;
+                            setSlides(newSlides);
+                          }}
+                        >
+                          <option value="sans">Moderna (Sans)</option>
+                          <option value="serif">Clássica (Serif)</option>
+                        </select>
+                      </div>
+
+                      {/* Cor */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-500 uppercase mb-2">Cor Base</label>
+                        <select 
+                          className="w-full text-xs p-2 border rounded-lg bg-white"
+                          value={slides[currentSlideIndex].themeColor || 'light'}
+                          onChange={(e) => {
+                            const newSlides = [...slides];
+                            newSlides[currentSlideIndex].themeColor = e.target.value as any;
+                            setSlides(newSlides);
+                          }}
+                        >
+                          <option value="light">Branco Flash</option>
+                          <option value="brand">Amarelo Destaque</option>
+                          <option value="dark">Preto Escuro</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Logo Toggle */}
+                    {brandSettings?.logo_url && (
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="showLogo"
+                          className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                          checked={slides[currentSlideIndex].showLogo !== false}
+                          onChange={(e) => {
+                            const newSlides = [...slides];
+                            newSlides[currentSlideIndex].showLogo = e.target.checked;
+                            setSlides(newSlides);
+                          }}
+                        />
+                        <label htmlFor="showLogo" className="text-xs font-semibold text-slate-700">Carimbar Logo da Marca neste slide</label>
+                      </div>
+                    )}
+
                     <div className="flex gap-3 pt-3">
                       <button
                         onClick={() => handleGenerateImage(currentSlideIndex)}
@@ -582,7 +713,7 @@ export default function Home() {
                         ) : (
                           <ImageIcon className="w-4 h-4 text-blue-400" />
                         )}
-                        {slides[currentSlideIndex].generated_image_url ? 'Regerar Imagem na Nuvem' : 'Renderizar Imagem (Replicate)'}
+                        {slides[currentSlideIndex].generated_image_url ? 'Regerar Imagem de Fundo' : 'Renderizar Imagem de Fundo'}
                       </button>
                       
                       {slides[currentSlideIndex].generated_image_url && (
