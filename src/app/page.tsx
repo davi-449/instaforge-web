@@ -302,30 +302,16 @@ export default function Home() {
                 
                 {aiModel === 'imagen-3' && (
                   <div className="mt-4 pl-4 border-l-2 border-slate-200">
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Versão do Imagen</label>
-                    <div className="space-y-2">
-                       <button
-                        onClick={() => setImagenModel('imagen-3.0-generate-002')}
-                        className={`w-full text-left p-2.5 rounded-lg border transition-all text-sm ${
-                          imagenModel === 'imagen-3.0-generate-002'
-                            ? 'bg-black text-white border-black' 
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                        }`}
-                      >
-                        Imagen 3.0 (Qualidade Máxima)
-                      </button>
-                      <button
-                        onClick={() => setImagenModel('imagen-3.0-fast-generate-001')}
-                        className={`w-full text-left p-2.5 rounded-lg border transition-all text-sm flex justify-between items-center ${
-                          imagenModel === 'imagen-3.0-fast-generate-001'
-                            ? 'bg-black text-white border-black' 
-                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                        }`}
-                      >
-                        Imagen 3.0 Fast (Mais Rápido)
-                        <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">Fast</span>
-                      </button>
-                    </div>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Versões Disponíveis (Google)</label>
+                    <select
+                      value={imagenModel}
+                      onChange={(e) => setImagenModel(e.target.value)}
+                      className="w-full text-left p-2.5 rounded-lg border bg-white text-slate-600 border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium appearance-none cursor-pointer"
+                      style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
+                    >
+                      <option value="imagen-3.0-generate-002">Imagen 3.0 (Qualidade Máxima)</option>
+                      <option value="imagen-3.0-fast-generate-001">Imagen 3.0 Nano/Fast (Mais Rápido)</option>
+                    </select>
                   </div>
                 )}
               </div>
