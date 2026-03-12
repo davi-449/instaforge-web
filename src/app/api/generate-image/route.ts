@@ -4,7 +4,7 @@ import Replicate from 'replicate';
 
 export async function POST(request: Request) {
   try {
-    const { prompt, personaUrl, format, apiToken, geminiKey, aiModel } = await request.json();
+    const { prompt, personaUrl, format, apiToken, geminiKey, aiModel, imagenModel } = await request.json();
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt é obrigatório' }, { status: 400 });
@@ -25,7 +25,9 @@ export async function POST(request: Request) {
       // Append stylistic instructions for better Instagram carousel consistency
       const optimizedPrompt = `Masterpiece, ultra-detailed, photorealistic, cinematic lighting, ${prompt}. Clean minimalist background, highly aesthetic instagram post, vibrant colors, 8k resolution.`;
 
-      const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-001:predict?key=${finalGeminiKey}`, {
+      const targetModel = imagenModel || 'imagen-3.0-generate-001';
+
+      const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:predict?key=${finalGeminiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -28,6 +28,7 @@ export default function Home() {
   const [format, setFormat] = useState('4:5');
   const [slideCount, setSlideCount] = useState<number>(5);
   const [aiModel, setAiModel] = useState('imagen-3');
+  const [imagenModel, setImagenModel] = useState('imagen-3.0-generate-001');
   const [resolution, setResolution] = useState('standard');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -122,7 +123,8 @@ export default function Home() {
           format: format,
           apiToken: apiToken,
           geminiKey: geminiKey,
-          aiModel: aiModel
+          aiModel: aiModel,
+          imagenModel: imagenModel
         }),
       });
       
@@ -297,6 +299,35 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
+                
+                {aiModel === 'imagen-3' && (
+                  <div className="mt-4 pl-4 border-l-2 border-slate-200">
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Versão do Imagen</label>
+                    <div className="space-y-2">
+                       <button
+                        onClick={() => setImagenModel('imagen-3.0-generate-001')}
+                        className={`w-full text-left p-2.5 rounded-lg border transition-all text-sm ${
+                          imagenModel === 'imagen-3.0-generate-001'
+                            ? 'bg-black text-white border-black' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        Imagen 3.0 (Qualidade Máxima)
+                      </button>
+                      <button
+                        onClick={() => setImagenModel('imagen-3.0-fast-generate-001')}
+                        className={`w-full text-left p-2.5 rounded-lg border transition-all text-sm flex justify-between items-center ${
+                          imagenModel === 'imagen-3.0-fast-generate-001'
+                            ? 'bg-black text-white border-black' 
+                            : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        Imagen 3.0 Fast (Mais Rápido)
+                        <span className="text-[10px] bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full">Fast</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
