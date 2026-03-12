@@ -309,9 +309,16 @@ export default function Home() {
                       className="w-full text-left p-2.5 rounded-lg border bg-white text-slate-600 border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium appearance-none cursor-pointer"
                       style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
-                      <option value="imagen-4.0-ultra-generate-001">Imagen 4.0 Ultra (Qualidade Absurda)</option>
-                      <option value="imagen-4.0-generate-001">Imagen 4.0 Standard (Padrão)</option>
-                      <option value="imagen-4.0-fast-generate-001">Imagen 4.0 Nano/Fast (Rápido p/ Drafts)</option>
+                      <optgroup label="Família Imagen 4">
+                        <option value="imagen-4.0-ultra-generate-001">Imagen 4.0 Ultra (Qualidade Absurda)</option>
+                        <option value="imagen-4.0-generate-001">Imagen 4.0 Standard (Padrão)</option>
+                        <option value="imagen-4.0-fast-generate-001">Imagen 4.0 Fast (Rápido p/ Drafts)</option>
+                      </optgroup>
+                      <optgroup label="Família Nano Banana (Gemini Multimodal)">
+                        <option value="gemini-3.1-flash-image-preview">Nano Banana 2: Flash 3.1 (Rápido + Eficiente)</option>
+                        <option value="gemini-3-pro-image-preview">Nano Banana Pro: 3 Pro (Raciocínio Avançado)</option>
+                        <option value="gemini-2.5-flash-image">Nano Banana: Flash 2.5</option>
+                      </optgroup>
                     </select>
                   </div>
                 )}
