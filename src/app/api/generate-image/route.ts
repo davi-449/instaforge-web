@@ -10,11 +10,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Prompt é obrigatório' }, { status: 400 });
     }
 
-    // Google Imagen 3 Block
-    if (aiModel === 'imagen-3') {
+    // Google Imagen 4 / Nano Banana Block
+    if (aiModel === 'imagen-4') {
       const finalGeminiKey = geminiKey || process.env.GEMINI_API_KEY;
       if (!finalGeminiKey) {
-        return NextResponse.json({ error: 'Configure sua Gemini API Key para usar Imagen 3' }, { status: 400 });
+        return NextResponse.json({ error: 'Configure sua Gemini API Key para usar a geração do Google' }, { status: 400 });
       }
 
       // Map formats to Imagen 3 valid aspect ratios: "1:1", "3:4", "4:3", "9:16", "16:9"
