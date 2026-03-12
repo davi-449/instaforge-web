@@ -28,7 +28,7 @@ export default function Home() {
   const [format, setFormat] = useState('4:5');
   const [slideCount, setSlideCount] = useState<number>(5);
   const [aiModel, setAiModel] = useState('imagen-3');
-  const [imagenModel, setImagenModel] = useState('imagen-3.0-generate-001');
+  const [imagenModel, setImagenModel] = useState('imagen-3.0-generate-002');
   const [resolution, setResolution] = useState('standard');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -305,9 +305,9 @@ export default function Home() {
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Versão do Imagen</label>
                     <div className="space-y-2">
                        <button
-                        onClick={() => setImagenModel('imagen-3.0-generate-001')}
+                        onClick={() => setImagenModel('imagen-3.0-generate-002')}
                         className={`w-full text-left p-2.5 rounded-lg border transition-all text-sm ${
-                          imagenModel === 'imagen-3.0-generate-001'
+                          imagenModel === 'imagen-3.0-generate-002'
                             ? 'bg-black text-white border-black' 
                             : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                         }`}

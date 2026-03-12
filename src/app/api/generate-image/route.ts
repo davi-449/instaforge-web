@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       // Append stylistic instructions for better Instagram carousel consistency
       const optimizedPrompt = `Masterpiece, ultra-detailed, photorealistic, cinematic lighting, ${prompt}. Clean minimalist background, highly aesthetic instagram post, vibrant colors, 8k resolution.`;
 
-      const targetModel = imagenModel || 'imagen-3.0-generate-001';
+      const targetModel = imagenModel || 'imagen-3.0-generate-002';
 
       const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:predict?key=${finalGeminiKey}`, {
         method: 'POST',
