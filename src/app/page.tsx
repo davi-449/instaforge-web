@@ -27,8 +27,8 @@ export default function Home() {
   const [localPersonaUrl, setLocalPersonaUrl] = useState('');
   const [format, setFormat] = useState('4:5');
   const [slideCount, setSlideCount] = useState<number>(5);
-  const [aiModel, setAiModel] = useState('imagen-3');
-  const [imagenModel, setImagenModel] = useState('imagen-3.0-generate-002');
+  const [aiModel, setAiModel] = useState('imagen-4');
+  const [imagenModel, setImagenModel] = useState('imagen-4.0-generate-001');
   const [resolution, setResolution] = useState('standard');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -103,8 +103,8 @@ export default function Home() {
       return;
     }
     
-    if (aiModel === 'imagen-3' && !geminiKey) {
-      alert('Para usar o Imagen 3 da Google, configure sua Gemini API Key nas Settings.');
+    if (aiModel === 'imagen-4' && !geminiKey) {
+      alert('Para usar o Imagen 4 da Google, configure sua Gemini API Key nas Settings.');
       setIsSettingsOpen(true);
       return;
     }
@@ -279,7 +279,7 @@ export default function Home() {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Motor de Geração de Imagem</label>
                 <div className="space-y-2">
                   {[
-                    { id: 'imagen-3', name: 'Imagen 3 (Google Gemini)', desc: 'Ultra realismo gratuito, mas rosto genérico', cost: 0.000 },
+                    { id: 'imagen-4', name: 'Imagen 4 (Google Gemini)', desc: 'Ultra realismo gratuito, mas rosto genérico', cost: 0.000 },
                     { id: 'instant-id', name: 'InstantID (Replicate)', desc: 'Rosto fiel da sua Persona (Requer Replicate Pro)', cost: 0.006 },
                   ].map(model => (
                     <button
@@ -300,7 +300,7 @@ export default function Home() {
                   ))}
                 </div>
                 
-                {aiModel === 'imagen-3' && (
+                {aiModel === 'imagen-4' && (
                   <div className="mt-4 pl-4 border-l-2 border-slate-200">
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Versões Disponíveis (Google)</label>
                     <select
@@ -309,8 +309,9 @@ export default function Home() {
                       className="w-full text-left p-2.5 rounded-lg border bg-white text-slate-600 border-slate-200 hover:border-slate-300 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium appearance-none cursor-pointer"
                       style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.75rem center', backgroundSize: '1em' }}
                     >
-                      <option value="imagen-3.0-generate-002">Imagen 3.0 (Qualidade Máxima)</option>
-                      <option value="imagen-3.0-fast-generate-001">Imagen 3.0 Nano/Fast (Mais Rápido)</option>
+                      <option value="imagen-4.0-ultra-generate-001">Imagen 4.0 Ultra (Qualidade Absurda)</option>
+                      <option value="imagen-4.0-generate-001">Imagen 4.0 Standard (Padrão)</option>
+                      <option value="imagen-4.0-fast-generate-001">Imagen 4.0 Nano/Fast (Rápido p/ Drafts)</option>
                     </select>
                   </div>
                 )}
