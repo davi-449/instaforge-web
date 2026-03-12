@@ -24,7 +24,9 @@ export default function Home() {
   const [slides, setSlides] = useState<Slide[]>([]);
   const [title, setTitle] = useState('');
   const [brandSettings, setBrandSettings] = useState<BrandSettings | null>(null);
+  const [localPersonaUrl, setLocalPersonaUrl] = useState('');
   const [format, setFormat] = useState('4:5');
+  const [slideCount, setSlideCount] = useState<number>(5);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   useEffect(() => {
@@ -40,7 +42,13 @@ export default function Home() {
       }
     }
     fetchSettings();
+    setLocalPersonaUrl(localStorage.getItem('persona_image_url') || '');
   }, []);
+
+  const handleSettingsClose = () => {
+    setIsSettingsOpen(false);
+    setLocalPersonaUrl(localStorage.getItem('persona_image_url') || '');
+  };
 
   const handleGenerateBrain = async () => {
     if (!idea) return;
@@ -57,7 +65,7 @@ export default function Home() {
       const res = await fetch('/api/generate-brain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea, apiKey }),
+        body: JSON.stringify({ idea, apiKey, slideCount }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -73,8 +81,11 @@ export default function Home() {
   };
 
   const handleGenerateImage = async (index: number) => {
-    if (!brandSettings?.persona_image_url) {
-      alert('Configurações de marca não encontradas.');
+    const activePersonaUrl = localPersonaUrl || brandSettings?.persona_image_url;
+    
+    if (!activePersonaUrl) {
+      alert('Por favor, adicione a Imagem Persona (Rosto) nas Settings.');
+      setIsSettingsOpen(true);
       return;
     }
 
@@ -95,7 +106,7 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           prompt: slides[index].image_prompt,
-          personaUrl: brandSettings.persona_image_url,
+          personaUrl: activePersonaUrl,
           format: format,
           apiToken: apiToken
         }),
@@ -179,7 +190,7 @@ export default function Home() {
         </div>
       </header>
 
-      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={handleSettingsClose} />
 
       <main className="max-w-5xl mx-auto px-6 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12">
         
@@ -203,19 +214,46 @@ export default function Home() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Format</label>
-                <div className="flex gap-2">
-                  {['1:1', '4:5', '9:16'].map((f) => (
+                <label className="block text-sm font-medium text-slate-700 mb-2">Formato da Imagem</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: '1:1', label: 'Feed', desc: 'Square', width: 20, height: 20 },
+                    { id: '4:5', label: 'Portrait', desc: 'Ideal', width: 18, height: 22.5 },
+                    { id: '9:16', label: 'Story', desc: 'Reels', width: 14, height: 25 },
+                  ].map((f) => (
                     <button
-                      key={f}
-                      onClick={() => setFormat(f)}
-                      className={`flex-1 py-2 text-sm font-medium rounded-lg border transition-all ${
-                        format === f 
-                          ? 'bg-black text-white border-black' 
-                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
+                      key={f.id}
+                      onClick={() => setFormat(f.id)}
+                      className={`flex flex-col items-center justify-center py-3 px-1 text-sm rounded-xl border transition-all ${
+                        format === f.id 
+                          ? 'bg-blue-50/50 border-blue-500 shadow-[0_0_0_1px_rgba(59,130,246,1)]' 
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                       }`}
                     >
-                      {f}
+                      <div className={`border-2 rounded-sm mb-2 transition-colors ${format === f.id ? 'border-blue-500 bg-blue-100/50' : 'border-slate-300 bg-slate-100'}`} 
+                           style={{ width: `${f.width}px`, height: `${f.height}px` }} 
+                      />
+                      <span className={format === f.id ? 'text-blue-700 font-semibold text-xs' : 'text-slate-700 font-medium text-xs'}>{f.label}</span>
+                      <span className="text-[10px] text-slate-400 mt-0.5">{f.id}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Quantidade de Slides</label>
+                <div className="flex gap-2">
+                  {[3, 5, 7, 10].map((num) => (
+                    <button
+                      key={num}
+                      onClick={() => setSlideCount(num)}
+                      className={`flex-1 py-2.5 text-sm font-medium rounded-xl border transition-all ${
+                        slideCount === num 
+                          ? 'bg-black text-white border-black shadow-sm' 
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      {num}
                     </button>
                   ))}
                 </div>
@@ -251,17 +289,19 @@ export default function Home() {
           </div>
 
           {/* Brand Settings Preview */}
-          {brandSettings && (
+          {(localPersonaUrl || brandSettings?.persona_image_url) && (
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
               <h3 className="text-sm font-semibold text-slate-900 mb-4">Active Persona</h3>
               <div className="flex items-center gap-4">
                 <img 
-                  src={brandSettings.persona_image_url} 
+                  src={localPersonaUrl || brandSettings?.persona_image_url || ''} 
                   alt="Persona" 
                   className="w-16 h-16 rounded-full object-cover border border-slate-200"
                 />
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-900">Default Model</p>
+                  <p className="text-sm font-medium text-slate-900">
+                    {localPersonaUrl ? 'Persona Local' : 'Persona Banco de Dados'}
+                  </p>
                   <p className="text-xs text-slate-500">Ready for generation</p>
                 </div>
               </div>
@@ -287,31 +327,42 @@ export default function Home() {
                   <div key={index} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col sm:flex-row">
                     
                     {/* Image Preview Area */}
-                    <div className="w-full sm:w-64 bg-slate-100 relative flex-shrink-0 border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center justify-center min-h-[250px]">
-                      {slide.generated_image_url ? (
-                        <img 
-                          src={slide.generated_image_url} 
-                          alt={`Slide ${slide.slide_order}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : slide.isGenerating ? (
-                        <div className="flex flex-col items-center text-slate-400">
-                          <Loader2 className="w-8 h-8 animate-spin mb-2 text-blue-500" />
-                          <span className="text-xs font-medium">Generating image...</span>
-                          <span className="text-[10px] mt-1 text-slate-400">(Takes ~40s)</span>
-                        </div>
-                      ) : (
-                        <ImageIcon className="w-12 h-12 text-slate-300" />
-                      )}
+                    <div className="w-full sm:w-[300px] bg-[#f3f4f6] relative flex-shrink-0 border-b sm:border-b-0 sm:border-r border-slate-200 flex items-center justify-center p-4">
                       
-                      {/* Overlay Text Preview */}
-                      {slide.generated_image_url && (
-                        <div className="absolute inset-0 flex items-end p-4 bg-gradient-to-t from-black/60 to-transparent">
-                          <p className="text-white font-bold text-lg leading-tight drop-shadow-md">
-                            {slide.content_text}
-                          </p>
-                        </div>
-                      )}
+                      {/* Dynamic Format Preview Mockup */}
+                      <div className={`relative bg-slate-200 rounded-lg overflow-hidden shadow-[0_2px_10px_rgba(0,0,0,0.08)] flex flex-col items-center justify-center transition-all duration-500 max-h-[350px] ${
+                        format === '1:1' ? 'w-full aspect-square' :
+                        format === '4:5' ? 'w-[80%] aspect-[4/5]' :
+                        'w-[56%] aspect-[9/16]'
+                      }`}>
+                        
+                        {slide.generated_image_url ? (
+                          <img 
+                            src={slide.generated_image_url} 
+                            alt={`Slide ${slide.slide_order}`}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : slide.isGenerating ? (
+                          <div className="flex flex-col items-center text-slate-500">
+                            <Loader2 className="w-8 h-8 animate-spin mb-2 text-blue-500" />
+                            <span className="text-[11px] font-medium">Baking pixels...</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center text-slate-300">
+                            <ImageIcon className="w-10 h-10 mb-2 opacity-50" />
+                            <span className="text-[10px] font-medium tracking-wider uppercase">Preview</span>
+                          </div>
+                        )}
+                        
+                        {/* Overlay Text Preview */}
+                        {slide.generated_image_url && (
+                          <div className="absolute inset-x-0 bottom-0 flex items-end p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent pt-12">
+                            <p className="text-white font-bold text-[15px] leading-tight drop-shadow-lg text-center w-full">
+                              {slide.content_text}
+                            </p>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     {/* Content Area */}

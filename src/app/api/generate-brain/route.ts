@@ -28,7 +28,7 @@ Retorne APENAS um JSON válido no seguinte formato:
 
 export async function POST(request: Request) {
   try {
-    const { idea, apiKey } = await request.json();
+    const { idea, apiKey, slideCount } = await request.json();
 
     if (!idea) {
       return NextResponse.json({ error: 'A ideia é obrigatória' }, { status: 400 });
@@ -50,7 +50,8 @@ export async function POST(request: Request) {
       }
     });
 
-    const result = await model.generateContent(`Crie um carrossel de 3 a 5 slides sobre a seguinte ideia: ${idea}`);
+    const quantity = slideCount || '3 a 5';
+    const result = await model.generateContent(`Crie um carrossel de exatamente ${quantity} slides sobre a seguinte ideia: ${idea}`);
     const response = await result.response;
     const resultText = response.text();
     if (!resultText) {
