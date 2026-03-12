@@ -27,7 +27,7 @@ export default function Home() {
   const [localPersonaUrl, setLocalPersonaUrl] = useState('');
   const [format, setFormat] = useState('4:5');
   const [slideCount, setSlideCount] = useState<number>(5);
-  const [aiModel, setAiModel] = useState('instant-id');
+  const [aiModel, setAiModel] = useState('imagen-3');
   const [resolution, setResolution] = useState('standard');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
@@ -93,9 +93,17 @@ export default function Home() {
       return;
     }
 
+    const geminiKey = localStorage.getItem('gemini_api_key');
     const apiToken = localStorage.getItem('replicate_api_key');
-    if (!apiToken) {
-      alert('Por favor, configure seu token da Replicate nas Settings primeiro.');
+
+    if (aiModel === 'instant-id' && !apiToken) {
+      alert('Para usar o InstantID, configure seu token da Replicate nas Settings.');
+      setIsSettingsOpen(true);
+      return;
+    }
+    
+    if (aiModel === 'imagen-3' && !geminiKey) {
+      alert('Para usar o Imagen 3 da Google, configure sua Gemini API Key nas Settings.');
       setIsSettingsOpen(true);
       return;
     }
@@ -112,7 +120,9 @@ export default function Home() {
           prompt: slides[index].image_prompt,
           personaUrl: activePersonaUrl,
           format: format,
-          apiToken: apiToken
+          apiToken: apiToken,
+          geminiKey: geminiKey,
+          aiModel: aiModel
         }),
       });
       
@@ -267,8 +277,8 @@ export default function Home() {
                 <label className="block text-sm font-medium text-slate-700 mb-2">Motor de Geração de Imagem</label>
                 <div className="space-y-2">
                   {[
-                    { id: 'instant-id', name: 'InstantID (Rosto Preciso)', desc: 'Mantém seu rosto fiel (Replicate/Banana)', cost: 0.006 },
-                    { id: 'flux', name: 'Flux (Ultra Realismo)', desc: 'Imagens super realistas, rosto genérico', cost: 0.003 },
+                    { id: 'imagen-3', name: 'Imagen 3 (Google Gemini)', desc: 'Ultra realismo gratuito, mas rosto genérico', cost: 0.000 },
+                    { id: 'instant-id', name: 'InstantID (Replicate)', desc: 'Rosto fiel da sua Persona (Requer Replicate Pro)', cost: 0.006 },
                   ].map(model => (
                     <button
                       key={model.id}
@@ -316,11 +326,11 @@ export default function Home() {
                 <div>
                   <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Estimativa de Custo</div>
                   <div className="text-sm text-slate-600">
-                    {slideCount} slides × {aiModel === 'instant-id' ? '$0.006' : '$0.003'} {resolution === 'hd' ? '× 1.5 (HD)' : ''}
+                    {slideCount} slides × {aiModel === 'instant-id' ? '$0.006' : 'Grátis'} {resolution === 'hd' && aiModel === 'instant-id' ? '× 1.5 (HD)' : ''}
                   </div>
                 </div>
                 <div className="text-xl font-bold text-slate-900">
-                  ${(slideCount * (aiModel === 'instant-id' ? 0.006 : 0.003) * (resolution === 'hd' ? 1.5 : 1)).toFixed(3)}
+                  {aiModel === 'instant-id' ? `$${(slideCount * 0.006 * (resolution === 'hd' ? 1.5 : 1)).toFixed(3)}` : 'Grátis'}
                 </div>
               </div>
 
