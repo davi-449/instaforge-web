@@ -4,7 +4,7 @@ import Replicate from 'replicate';
 
 export async function POST(request: Request) {
   try {
-    const { prompt, personaUrl, format, apiToken, geminiKey, aiModel, imagenModel } = await request.json();
+    const { prompt, personaUrl, format, apiToken, geminiKey, aiModel, imagenModel, references } = await request.json();
 
     if (!prompt) {
       return NextResponse.json({ error: 'Prompt é obrigatório' }, { status: 400 });
@@ -27,26 +27,69 @@ export async function POST(request: Request) {
 
       const targetModel = imagenModel || 'imagen-4.0-generate-001';
 
-      const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:predict?key=${finalGeminiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instances: [{ prompt: optimizedPrompt }],
-          parameters: { sampleCount: 1, aspectRatio: imagenRatio }
-        })
-      });
+      if (targetModel.includes('gemini-3')) {
+        // NANO BANANA: Multimodal Base64 Image Generation via generateContent
+        const parts: any[] = [{ text: optimizedPrompt }];
+        
+        // Append user visual references (Logo, Persona, Style)
+        if (references && Array.isArray(references)) {
+          for (const ref of references) {
+            const matches = ref.base64Data.match(/^data:(image\/[a-zA-Z]*);base64,(.*)$/);
+            if (matches && matches.length === 3) {
+              parts.push({
+                inlineData: {
+                  mimeType: matches[1],
+                  data: matches[2]
+                }
+              });
+            }
+          }
+        }
 
-      const gData = await gRes.json();
-      if (gData.error) {
-        throw new Error(gData.error.message || 'Erro no Google Imagen 3');
+        const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${finalGeminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts }],
+            generationConfig: { responseModalities: ["IMAGE"] }
+          })
+        });
+
+        const gData = await gRes.json();
+        if (gData.error) throw new Error(gData.error.message || 'Erro no Nano Banana (Gemini 3)');
+
+        const base64Image = gData.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+        const mimeType = gData.candidates?.[0]?.content?.parts?.[0]?.inlineData?.mimeType || 'image/jpeg';
+        
+        if (!base64Image) {
+          throw new Error('Gemini não retornou dados de imagem em Base64');
+        }
+
+        return NextResponse.json({ imageUrl: `data:${mimeType};base64,${base64Image}` });
+
+      } else {
+        // GERAÇÃO TRADICIONAL (Imagen 4 / Google GenAI via Predict)
+        const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:predict?key=${finalGeminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            instances: [{ prompt: optimizedPrompt }],
+            parameters: { sampleCount: 1, aspectRatio: imagenRatio }
+          })
+        });
+
+        const gData = await gRes.json();
+        if (gData.error) {
+          throw new Error(gData.error.message || 'Erro no Google Imagen');
+        }
+
+        const base64Image = gData.predictions?.[0]?.bytesBase64Encoded;
+        if (!base64Image) {
+          throw new Error('Google não retornou a imagem base64');
+        }
+
+        return NextResponse.json({ imageUrl: `data:image/jpeg;base64,${base64Image}` });
       }
-
-      const base64Image = gData.predictions?.[0]?.bytesBase64Encoded;
-      if (!base64Image) {
-        throw new Error('Google não retornou a imagem base64');
-      }
-
-      return NextResponse.json({ imageUrl: `data:image/jpeg;base64,${base64Image}` });
     }
 
     // Replicate InstantID Block

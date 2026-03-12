@@ -17,6 +17,12 @@ interface Slide {
   themeColor?: 'light' | 'dark' | 'brand';
   fontFamily?: 'sans' | 'serif';
   showLogo?: boolean;
+  references?: {
+    id: string;
+    type: 'persona' | 'style' | 'logo';
+    base64Data: string;
+    mimeType: string;
+  }[];
 }
 
 interface BrandSettings {
@@ -38,6 +44,28 @@ export default function Home() {
   const [resolution, setResolution] = useState('standard');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+
+  const handleReferenceUpload = async (slideIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64Data = event.target?.result as string; 
+      const newRef = {
+        id: Math.random().toString(36).substring(7),
+        type: 'style' as const,
+        base64Data,
+        mimeType: file.type
+      };
+      const newSlides = [...slides];
+      if (!newSlides[slideIndex].references) newSlides[slideIndex].references = [];
+      newSlides[slideIndex].references!.push(newRef); // Use non-null assertion as we just initialized it if null
+      setSlides(newSlides);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
 
   useEffect(() => {
     async function fetchSettings() {
@@ -130,7 +158,8 @@ export default function Home() {
           apiToken: apiToken,
           geminiKey: geminiKey,
           aiModel: aiModel,
-          imagenModel: imagenModel
+          imagenModel: imagenModel,
+          references: slides[index].references
         }),
       });
       
@@ -699,6 +728,56 @@ export default function Home() {
                           }}
                         />
                         <label htmlFor="showLogo" className="text-xs font-semibold text-slate-700">Carimbar Logo da Marca neste slide</label>
+                      </div>
+                    )}
+
+                    {/* Multimodal Settings (Nano Banana) */}
+                    {aiModel === 'imagen-4' && imagenModel?.includes('gemini-3') && (
+                      <div className="mt-4 p-4 border border-blue-200 bg-blue-50/50 rounded-xl space-y-4">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[11px] font-bold text-blue-800 uppercase tracking-wider flex items-center gap-2">
+                            Referências Visuais (Nano Banana 🍌)
+                          </label>
+                          <label className="cursor-pointer bg-white text-xs text-blue-600 font-semibold px-3 py-1.5 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
+                            + Adicionar Foto
+                            <input type="file" className="hidden" accept="image/jpeg, image/png, image/webp" onChange={(e) => handleReferenceUpload(currentSlideIndex, e)} />
+                          </label>
+                        </div>
+
+                        {slides[currentSlideIndex].references && slides[currentSlideIndex].references!.length > 0 ? (
+                          <div className="flex flex-wrap gap-3">
+                            {slides[currentSlideIndex].references!.map((ref, idx) => (
+                              <div key={ref.id} className="relative group bg-white border border-slate-200 rounded-lg p-2 flex flex-col items-center gap-2 shadow-sm w-[110px]">
+                                <img src={ref.base64Data} alt="Ref" className="w-16 h-16 object-cover rounded-md" />
+                                <select 
+                                  className="w-full text-[10px] font-semibold text-slate-700 bg-slate-100 rounded px-1 py-1 outline-none"
+                                  value={ref.type}
+                                  onChange={(e) => {
+                                    const newSlides = [...slides];
+                                    newSlides[currentSlideIndex].references![idx].type = e.target.value as any;
+                                    setSlides(newSlides);
+                                  }}
+                                >
+                                  <option value="style">Ref. Estilo</option>
+                                  <option value="persona">Sua Persona</option>
+                                  <option value="logo">Marca / Logo</option>
+                                </select>
+                                <button 
+                                  onClick={() => {
+                                    const newSlides = [...slides];
+                                    newSlides[currentSlideIndex].references!.splice(idx, 1);
+                                    setSlides(newSlides);
+                                  }}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white w-5 h-5 rounded-full text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-500">Nenhuma referência anexada. Adicione fotos para controlar direção de arte, persona e clima deste slide.</p>
+                        )}
                       </div>
                     )}
 
